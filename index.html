@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>极简颜色挑战</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #f8f9fa;
+            color: #2c3e50;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        #startScreen {
+            display: flex;
+        }
+
+        #gameTitle {
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+
+        .difficulty-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .difficulty-btn {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1.5rem 3rem;
+            margin: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            color: #2c3e50;
+            width: 100%;
+            display: block;
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            background: #3498db;
+            color: white;
+        }
+
+        #gameContainer {
+            position: relative;
+            padding: 2rem;
+        }
+
+        #score {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #3498db;
+            margin: 2rem 0;
+        }
+
+        #question {
+            font-size: 8rem;
+            margin: 3rem 0;
+            animation: float 3s ease-in-out infinite;
+            text-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .color-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            font-size: 2rem;
+            margin: 0 auto;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        #global-timer,
+        #local-timer {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(4px);
+            border-radius: 20px;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            font-weight: 600;
+            color: #3498db;
+            border: 1px solid rgba(52, 152, 219, 0.2);
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #local-timer {
+            top: 80px;
+        }
+
+        #leaderboard {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(4px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            width: 280px;
+        }
+
+        #endScreen {
+            text-align: center;
+        }
+
+        .final-score {
+            font-size: 3.5rem;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+        }
+
+        #nameInput {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+            width: 280px;
+            margin: 2rem 0;
+        }
+
+        #stats {
+            display: flex;
+            gap: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin: 2rem 0;
+        }
+
+        .stat-item {
+            position: relative;
+            padding: 0 1rem;
+            font-size: 1.2rem;
+            color: #2c3e50;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes correctAnim {
+            0% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(8deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes wrongAnim {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        .correct-animation {
+            animation: correctAnim 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        .wrong-animation {
+            animation: wrongAnim 0.4s ease;
+        }
+
+        button {
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #startButton {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1.5rem 3rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen" class="screen">
+        <div id="gameTitle">颜色挑战</div>
+        <button id="startButton">开始游戏</button>
+        <button id="startLeaderboard">排行榜</button>
+    </div>
+
+    <div id="difficultyScreen" class="screen">
+        <button id="backToHomeFromDifficulty">返回首页</button>
+        <div class="difficulty-card">
+            <h2>选择难度</h2>
+            <button class="difficulty-btn" data-difficulty="easy">简单模式</button>
+            <button class="difficulty-btn" data-difficulty="normal">普通模式</button>
+            <button class="difficulty-btn" data-difficulty="hard">困难模式</button>
+            <div id="ruleTip"></div>
+            <button id="confirmStart">确认开始</button>
+        </div>
+    </div>
+
+    <div id="gameContainer" class="screen">
+        <div id="global-timer"></div>
+        <div id="local-timer"></div>
+        <div id="leaderboard">
+            <h3>🏆 排行榜</h3>
+            <div id="leaderboardList"></div>
+        </div>
+        <button id="instantEndBtn">立即结束</button>
+        <div id="score">分数：0</div>
+        <div id="stats">
+            <span class="stat-item">✓ <span id="correctCount">0</span></span>
+            <span class="stat-item">✗ <span id="wrongCount">0</span></span>
+            <span class="stat-item">总数: <span id="totalCount">0</span></span>
+        </div>
+        <div id="question">红</div>
+        <div id="buttons">
+            <button class="color-btn" data-color="red">红</button>
+            <button class="color-btn" data-color="blue">蓝</button>
+            <button class="color-btn" data-color="green">绿</button>
+            <button class="color-btn" data-color="yellow">黄</button>
+        </div>
+    </div>
+
+    <div id="endScreen" class="screen">
+        <div class="final-score" id="finalScore">最终得分：0</div>
+        <div id="endStats"></div>
+        <input type="text" id="nameInput" placeholder="输入你的名字" maxlength="10">
+        <div>
+            <button class="control-btn" id="restartBtn">提交分数</button>
+            <button class="control-btn" id="backHomeBtn">返回主页</button>
+        </div>
+    </div>
+
+    <div id="leaderboardScreen" class="screen">
+        <button id="backToHome">返回首页</button>
+        <div class="difficulty-card">
+            <h2>排行榜 - <span id="currentDifficulty"></span></h2>
+            <div id="fullLeaderboardList"></div>
+        </div>
+    </div>
+
+    <script>
+        const GameState = {
+            score: 0,
+            correctCount: 0,
+            wrongCount: 0,
+            totalCount: 0,
+            difficulty: 'normal',
+            globalTimer: null,
+            localTimer: null,
+            sound: null,
+            settings: {
+                easy: { totalTime: 90, questionTime: 8, correct: 10, wrong: -5 },
+                normal: { totalTime: 60, questionTime: 5, correct: 10, wrong: -10 },
+                hard: { totalTime: 30, questionTime: 3, correct: 15, wrong: -15 }
+            }
+        };
+
+        const HistoryStorage = {
+            KEY: 'colorChallengeRecords',
+            
+            getRecords(difficulty) {
+                const all = JSON.parse(localStorage.getItem(this.KEY)) || {};
+                return all[difficulty] || [];
+            },
+
+            addRecord(difficulty, name, score) {
+                const all = JSON.parse(localStorage.getItem(this.KEY)) || {};
+                const records = this.getRecords(difficulty);
+                records.push({
+                    name: name || "匿名玩家",
+                    score: Math.max(score, 0),
+                    date: new Date().toISOString(),
+                    correct: GameState.correctCount,
+                    wrong: GameState.wrongCount,
+                    total: GameState.totalCount
+                });
+                records.sort((a, b) => b.score - a.score);
+                all[difficulty] = records.slice(0, 10);
+                localStorage.setItem(this.KEY, JSON.stringify(all));
+                this.render();
+            },
+
+            render(difficulty = GameState.difficulty) {
+                const records = this.getRecords(difficulty);
+                const list = document.getElementById('leaderboardList');
+                list.innerHTML = records
+                    .map((record, index) => `
+                        <div class="leaderboard-item">
+                            <span>${index + 1}. ${record.name}</span>
+                            <span>${record.score}分</span>
+                        </div>
+                    `).join('');
+            },
+
+            renderFull(difficulty = 'normal') {
+                const validDifficulty = ['easy', 'normal', 'hard'].includes(difficulty) ? difficulty : 'normal';
+                const records = this.getRecords(validDifficulty);
+                document.getElementById('currentDifficulty').textContent = 
+                    {easy:'简单模式', normal:'普通模式', hard:'困难模式'}[validDifficulty];
+                const list = document.getElementById('fullLeaderboardList');
+                list.innerHTML = records
+                    .map((record, index) => `
+                        <div class="leaderboard-item">
+                            <span>${index + 1}. ${record.name}</span>
+                            <span>${record.score}分</span>
+                            <span>${new Date(record.date).toLocaleDateString()}</span>
+                        </div>
+                    `).join('') || '<div>暂无记录</div>';
+            }
+        };
+
+        class SoundSystem {
+            constructor() {
+                this.audioCtx = null;
+            }
+            
+            init() {
+                if (!this.audioCtx) {
+                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            play(frequency, duration = 0.3) {
+                this.init();
+                const osc = this.audioCtx.createOscillator();
+                const gainNode = this.audioCtx.createGain();
+                
+                osc.connect(gainNode);
+                gainNode.connect(this.audioCtx.destination);
+                
+                osc.type = 'square';
+                osc.frequency.value = frequency;
+                
+                gainNode.gain.setValueAtTime(0.2, this.audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + duration);
+                
+                osc.start();
+                osc.stop(this.audioCtx.currentTime + duration);
+            }
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(el => {
+                el.style.display = el.id === screenId ? 'flex' : 'none';
+            });
+            if (screenId === 'startScreen') HistoryStorage.render();
+        }
+
+        function initializeButtonColors() {
+            const colorPool = ["red", "blue", "green", "yellow"];
+            const buttons = Array.from(document.querySelectorAll('.color-btn'));
+            
+            const availableColors = buttons.map(btn => {
+                const forbiddenColor = btn.dataset.color;
+                return colorPool.filter(c => c !== forbiddenColor);
+            });
+
+            const colorAssignments = {};
+            buttons.forEach((btn, index) => {
+                const possibleColors = availableColors[index]
+                    .filter(c => !Object.values(colorAssignments).includes(c));
+                
+                const selectedColor = possibleColors.length > 0 
+                    ? possibleColors[Math.floor(Math.random() * possibleColors.length)]
+                    : availableColors[index][Math.floor(Math.random() * availableColors[index].length)];
+                
+                colorAssignments[btn.dataset.color] = selectedColor;
+            });
+
+            buttons.forEach(btn => {
+                btn.style.color = colorAssignments[btn.dataset.color];
+            });
+        }
+
+        function initialize() {
+            document.getElementById('startButton').addEventListener('click', () => showScreen('difficultyScreen'));
+            document.getElementById('startLeaderboard').addEventListener('click', () => {
+                HistoryStorage.renderFull(GameState.difficulty);
+                showScreen('leaderboardScreen');
+            });
+            
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    GameState.difficulty = this.dataset.difficulty;
+                    const settings = GameState.settings[GameState.difficulty];
+                    document.getElementById('ruleTip').innerHTML = `
+                        <h3>${this.textContent}规则</h3>
+                        <p>⏳ 总时间：${settings.totalTime}秒</p>
+                        <p>🕒 每题限时：${settings.questionTime}秒</p>
+                        <p>✅ 答对 +${settings.correct}分</p>
+                        <p>❌ 答错 ${settings.wrong}分</p>
+                    `;
+                    document.getElementById('confirmStart').style.display = 'block';
+                });
+            });
+
+            document.getElementById('confirmStart').addEventListener('click', startGame);
+            document.getElementById('restartBtn').addEventListener('click', () => {
+                const name = document.getElementById('nameInput').value.trim();
+                HistoryStorage.addRecord(GameState.difficulty, name, GameState.score);
+                HistoryStorage.renderFull(GameState.difficulty);
+                showScreen('leaderboardScreen');
+            });
+            document.getElementById('backHomeBtn').addEventListener('click', () => showScreen('startScreen'));
+            document.getElementById('instantEndBtn').addEventListener('click', endGame);
+            document.getElementById('backToHome').addEventListener('click', () => showScreen('startScreen'));
+            document.getElementById('backToHomeFromDifficulty').addEventListener('click', () => showScreen('startScreen'));
+
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const selectedColor = this.dataset.color;
+                    const correctColor = document.getElementById('question').style.color;
+                    
+                    const isCorrect = selectedColor === correctColor;
+                    GameState.score += isCorrect ? 
+                        GameState.settings[GameState.difficulty].correct : 
+                        GameState.settings[GameState.difficulty].wrong;
+                    
+                    GameState.totalCount++;
+                    if(isCorrect) {
+                        GameState.correctCount++;
+                    } else {
+                        GameState.wrongCount++;
+                    }
+                    
+                    document.getElementById('score').textContent = `分数：${GameState.score}`;
+                    document.getElementById('correctCount').textContent = GameState.correctCount;
+                    document.getElementById('wrongCount').textContent = GameState.wrongCount;
+                    document.getElementById('totalCount').textContent = GameState.totalCount;
+                    
+                    GameState.sound.play(isCorrect ? 880 : 220);
+                    document.getElementById('question').classList.add(isCorrect ? 'correct-animation' : 'wrong-animation');
+                    setTimeout(() => {
+                        document.getElementById('question').classList.remove('correct-animation', 'wrong-animation');
+                    }, 600);
+                    
+                    newQuestion();
+                });
+            });
+
+            GameState.sound = new SoundSystem();
+            HistoryStorage.render();
+        }
+
+        function startGame() {
+            GameState.score = 0;
+            GameState.correctCount = 0;
+            GameState.wrongCount = 0;
+            GameState.totalCount = 0;
+            const settings = GameState.settings[GameState.difficulty];
+            
+            clearInterval(GameState.globalTimer);
+            clearInterval(GameState.localTimer);
+            
+            let globalTime = settings.totalTime;
+            document.getElementById('global-timer').textContent = `总剩余时间：${globalTime}秒`;
+            GameState.globalTimer = setInterval(() => {
+                if (--globalTime <= 0) endGame();
+                document.getElementById('global-timer').textContent = `总剩余时间：${globalTime}秒`;
+            }, 1000);
+
+            document.getElementById('correctCount').textContent = 0;
+            document.getElementById('wrongCount').textContent = 0;
+            document.getElementById('totalCount').textContent = 0;
+            showScreen('gameContainer');
+            newQuestion();
+        }
+
+        function newQuestion() {
+            clearInterval(GameState.localTimer);
+            const settings = GameState.settings[GameState.difficulty];
+            
+            const words = ["红", "蓝", "绿", "黄"];
+            const colors = ["red", "blue", "green", "yellow"];
+            const colorMap = { "红":"red", "蓝":"blue", "绿":"green", "黄":"yellow" };
+            
+            const randomWord = words[Math.floor(Math.random() * words.length)];
+            const availableColors = colors.filter(c => c !== colorMap[randomWord]);
+            const randomColor = availableColors[Math.floor(Math.random() * availableColors.length)];
+            
+            document.getElementById('question').textContent = randomWord;
+            document.getElementById('question').style.color = randomColor;
+            
+            const buttons = Array.from(document.getElementById('buttons').children);
+            buttons.sort(() => Math.random() - 0.5);
+            buttons.forEach(btn => document.getElementById('buttons').appendChild(btn));
+            
+            initializeButtonColors();
+            
+            let localTime = settings.questionTime;
+            document.getElementById('local-timer').textContent = `本题剩余：${localTime}秒`;
+            GameState.localTimer = setInterval(() => {
+                if (--localTime <= 0) {
+                    GameState.score += settings.wrong;
+                    GameState.wrongCount++;
+                    GameState.totalCount++;
+                    document.getElementById('score').textContent = `分数：${GameState.score}`;
+                    document.getElementById('wrongCount').textContent = GameState.wrongCount;
+                    document.getElementById('totalCount').textContent = GameState.totalCount;
+                    newQuestion();
+                }
+                document.getElementById('local-timer').textContent = `本题剩余：${localTime}秒`;
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(GameState.globalTimer);
+            clearInterval(GameState.localTimer);
+            document.getElementById('finalScore').textContent = `最终得分：${GameState.score}`;
+            document.getElementById('endStats').innerHTML = `
+                <p>✓ 正确: ${GameState.correctCount} 题</p>
+                <p>✗ 错误: ${GameState.wrongCount} 题</p>
+                <p>▣ 总数: ${GameState.totalCount} 题</p>
+            `;
+            showScreen('endScreen');
+        }
+
+        initialize();
+    </script>
+</body>
+</html>
